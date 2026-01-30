@@ -10,7 +10,7 @@ export class AdminUser {
   username: string;
 
   @Column({ type: 'text' })
-  password: string;
+  password_hash: string;
 
   @Column({ type: 'text' })
   @IsEmail()

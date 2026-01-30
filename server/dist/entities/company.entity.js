@@ -9,44 +9,48 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminUser = void 0;
+exports.Company = void 0;
 const typeorm_1 = require("typeorm");
-const class_validator_1 = require("class-validator");
-let AdminUser = class AdminUser {
+const company_email_domain_entity_1 = require("./company-email-domain.entity");
+let Company = class Company {
     id;
-    username;
-    password_hash;
-    recovery_email;
+    name;
+    code;
+    is_active;
+    email_domains;
     created_at;
     updated_at;
 };
-exports.AdminUser = AdminUser;
+exports.Company = Company;
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
-], AdminUser.prototype, "id", void 0);
+], Company.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text' }),
+    __metadata("design:type", String)
+], Company.prototype, "name", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'text', unique: true }),
     __metadata("design:type", String)
-], AdminUser.prototype, "username", void 0);
+], Company.prototype, "code", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'text' }),
-    __metadata("design:type", String)
-], AdminUser.prototype, "password_hash", void 0);
+    (0, typeorm_1.Column)({ type: 'boolean', default: true }),
+    __metadata("design:type", Boolean)
+], Company.prototype, "is_active", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'text' }),
-    (0, class_validator_1.IsEmail)(),
-    __metadata("design:type", String)
-], AdminUser.prototype, "recovery_email", void 0);
+    (0, typeorm_1.OneToMany)(() => company_email_domain_entity_1.CompanyEmailDomain, d => d.company),
+    __metadata("design:type", Array)
+], Company.prototype, "email_domains", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)({ type: 'timestamptz' }),
     __metadata("design:type", Date)
-], AdminUser.prototype, "created_at", void 0);
+], Company.prototype, "created_at", void 0);
 __decorate([
     (0, typeorm_1.UpdateDateColumn)({ type: 'timestamptz' }),
     __metadata("design:type", Date)
-], AdminUser.prototype, "updated_at", void 0);
-exports.AdminUser = AdminUser = __decorate([
-    (0, typeorm_1.Entity)('admin_user')
-], AdminUser);
-//# sourceMappingURL=admin-user.entity.js.map
+], Company.prototype, "updated_at", void 0);
+exports.Company = Company = __decorate([
+    (0, typeorm_1.Entity)('company')
+], Company);
+//# sourceMappingURL=company.entity.js.map
