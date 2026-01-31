@@ -14,22 +14,24 @@ const passport_1 = require("@nestjs/passport");
 const admin_auth_controller_1 = require("./admin-auth.controller");
 const admin_auth_service_1 = require("./admin-auth.service");
 const admin_jwt_strategy_1 = require("./admin-jwt.strategy");
-const admin_user_entity_1 = require("../../entities/admin-user.entity");
+const admin_user_entity_1 = require("../../../entities/admin-user.entity");
 const config_1 = require("@nestjs/config");
+const admin_refresh_token_entity_1 = require("../../../entities/admin-refresh-token.entity");
 let AdminAuthModule = class AdminAuthModule {
 };
 exports.AdminAuthModule = AdminAuthModule;
 exports.AdminAuthModule = AdminAuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([admin_user_entity_1.AdminUser]),
+            config_1.ConfigModule,
+            typeorm_1.TypeOrmModule.forFeature([admin_user_entity_1.AdminUser, admin_refresh_token_entity_1.AdminRefreshToken]),
             passport_1.PassportModule,
             jwt_1.JwtModule.registerAsync({
                 inject: [config_1.ConfigService],
                 useFactory: (config) => ({
                     secret: config.get('ADMIN_JWT_SECRET'),
                     signOptions: {
-                        expiresIn: '15m',
+                        expiresIn: config.get('ADMIN_ACCESS_TOKEN_EXPIRY') || '30m',
                         issuer: 'pms-admin',
                         audience: 'pms-admin'
                     }

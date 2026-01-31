@@ -12,11 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminUser = void 0;
 const typeorm_1 = require("typeorm");
 const class_validator_1 = require("class-validator");
+const admin_refresh_token_entity_1 = require("./admin-refresh-token.entity");
 let AdminUser = class AdminUser {
     id;
     username;
     password_hash;
     recovery_email;
+    refreshTokens;
     created_at;
     updated_at;
 };
@@ -38,6 +40,10 @@ __decorate([
     (0, class_validator_1.IsEmail)(),
     __metadata("design:type", String)
 ], AdminUser.prototype, "recovery_email", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => admin_refresh_token_entity_1.AdminRefreshToken, (token) => token.admin),
+    __metadata("design:type", Array)
+], AdminUser.prototype, "refreshTokens", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)({ type: 'timestamptz' }),
     __metadata("design:type", Date)

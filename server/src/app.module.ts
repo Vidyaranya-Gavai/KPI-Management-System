@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AdminModule } from './admin/admin.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({

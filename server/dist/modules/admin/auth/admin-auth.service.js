@@ -51,13 +51,18 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const bcrypt = __importStar(require("bcrypt"));
 const jwt_1 = require("@nestjs/jwt");
-const admin_user_entity_1 = require("../../entities/admin-user.entity");
+const date_fns_1 = require("date-fns");
+const crypto = __importStar(require("crypto"));
+const admin_user_entity_1 = require("../../../entities/admin-user.entity");
+const admin_refresh_token_entity_1 = require("../../../entities/admin-refresh-token.entity");
 let AdminAuthService = class AdminAuthService {
     adminRepo;
+    adminRefreshTokenRepository;
     jwtService;
     SALT_ROUNDS = 12;
-    constructor(adminRepo, jwtService) {
+    constructor(adminRepo, adminRefreshTokenRepository, jwtService) {
         this.adminRepo = adminRepo;
+        this.adminRefreshTokenRepository = adminRefreshTokenRepository;
         this.jwtService = jwtService;
     }
     async register(dto) {
@@ -81,28 +86,43 @@ let AdminAuthService = class AdminAuthService {
     }
     async login(dto) {
         const admin = await this.adminRepo.findOne({
-            where: { username: dto.username }
+            where: { username: dto.username },
         });
         if (!admin) {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
-        const isValid = await bcrypt.compare(dto.password, admin.password_hash);
-        if (!isValid) {
+        const passwordMatch = await bcrypt.compare(dto.password, admin.password_hash);
+        if (!passwordMatch) {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
         const payload = {
             sub: admin.id,
-            type: 'admin'
+            type: 'admin',
         };
-        const access_token = this.jwtService.sign(payload);
-        return { access_token };
+        const accessToken = this.jwtService.sign(payload);
+        const refreshToken = crypto.randomBytes(64).toString('hex');
+        const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+        const refreshTokenExpiry = (0, date_fns_1.addDays)(new Date(), Number(process.env.ADMIN_REFRESH_TOKEN_EXPIRY_DAYS));
+        await this.adminRefreshTokenRepository.save({
+            adminId: admin.id,
+            tokenHash: refreshTokenHash,
+            expiresAt: refreshTokenExpiry,
+            isValid: true,
+        });
+        return {
+            access_token: `Bearer ${accessToken}`,
+            refresh_token: refreshToken,
+            expires_in: process.env.ADMIN_ACCESS_TOKEN_EXPIRY,
+        };
     }
 };
 exports.AdminAuthService = AdminAuthService;
 exports.AdminAuthService = AdminAuthService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(admin_user_entity_1.AdminUser)),
+    __param(1, (0, typeorm_1.InjectRepository)(admin_refresh_token_entity_1.AdminRefreshToken)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         jwt_1.JwtService])
 ], AdminAuthService);
 //# sourceMappingURL=admin-auth.service.js.map

@@ -10,5 +10,7 @@ export declare class AdminAuthController {
     }>;
     login(dto: LoginAdminDto): Promise<{
         access_token: string;
+        refresh_token: string;
+        expires_in: string | undefined;
     }>;
 }
