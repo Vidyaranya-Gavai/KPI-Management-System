@@ -1,5 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Company } from "./company.entity";
+import { AdminUser } from "./admin-user.entity";
 
 @Entity('company_email_domain')
 export class CompanyEmailDomain {
@@ -15,6 +16,11 @@ export class CompanyEmailDomain {
 
   @Column({ type: 'boolean', default: true })
   is_active: boolean;
+
+  // Admin who added this domain
+  @ManyToOne(() => AdminUser, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'created_by' })
+  created_by: AdminUser | null;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
