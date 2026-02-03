@@ -3,6 +3,11 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 
+interface AdminJwtPayload {
+  sub: number;
+  type: 'admin';
+}
+
 @Injectable()
 export class AdminJwtStrategy extends PassportStrategy(
   Strategy,
@@ -17,9 +22,9 @@ export class AdminJwtStrategy extends PassportStrategy(
     });
   }
 
-  async validate(payload: any) {
+  async validate(payload: AdminJwtPayload) {
     return {
-      admin_id: payload.sub,
+      id: payload.sub,
       type: payload.type
     };
   }
