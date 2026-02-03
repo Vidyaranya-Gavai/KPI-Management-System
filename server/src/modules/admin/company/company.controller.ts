@@ -18,4 +18,14 @@ export class CompanyController {
   ) {
      return this.companyService.createCompany(createCompanyDto, admin.id);
   }
+
+  /* Create bootstrap companies */
+  @UseGuards(AdminAuthGuard)
+  @Post('bootstrap')
+  async bootstrapCompanies(
+    @Body() bootstrapCompanyDto: BootstrapCompanyDto,
+    @Admin() admin: { id: number },
+  ) {
+    return this.companyService.createBootstrapCompanies(bootstrapCompanyDto, admin.id);
+  }
 }
