@@ -8,8 +8,9 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CompanyEmailDomainDto } from './company-domain.dto';
+import { IBootstrapCompany } from './interfaces/bootstrap-company.interface';
 
-export class BootstrapChildCompanyDto {
+export class BootstrapChildCompanyDto implements IBootstrapCompany {
   @IsString()
   @IsNotEmpty()
   name: string;
