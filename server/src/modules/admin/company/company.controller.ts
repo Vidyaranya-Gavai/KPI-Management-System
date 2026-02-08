@@ -1,9 +1,10 @@
-import { Body, Controller, Post, UseGuards, Req } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Req, Patch, Param } from '@nestjs/common';
 import { CompanyService } from './company.service';
-import { CreateCompanyDto } from './dtos/create-company.dto';
-import { BootstrapCompanyDto } from './dtos/bootstrap-company.dto';
+import { CreateCompanyDto } from './dtos/create/create-company.dto';
+import { BootstrapCompanyDto } from './dtos/create/bootstrap-company.dto';
 import { AdminAuthGuard } from '../../../guards/admin/admin-auth.guard';
 import { Admin, AdminContext } from 'src/common/decorators/admin.decorator';
+import { UpdateCompanyDto } from './dtos/update/update-company.dto';
 
 @Controller('admin/company')
 export class CompanyController {
@@ -28,4 +29,19 @@ export class CompanyController {
   ) {
     return this.companyService.createBootstrapCompanies(bootstrapCompanyDto, admin.id);
   }
+
+  @UseGuards(AdminAuthGuard)
+  @Patch(':companyId')
+  async updateCompany(
+    @Param('companyId') companyId: string,
+    @Body() updateCompanyDto: UpdateCompanyDto,
+    @Admin() admin: AdminContext,
+  ) {
+    return this.companyService.updateCompany(
+      Number(companyId),
+      admin.id,
+      updateCompanyDto,
+    );
+}
+
 }

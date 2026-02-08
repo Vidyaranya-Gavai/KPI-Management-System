@@ -3,9 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Company } from '../../../entities/company.entity';
 import { CompanyEmailDomain } from '../../../entities/company-email-domain.entity';
-import { CreateCompanyDto } from './dtos/create-company.dto';
+import { CreateCompanyDto } from './dtos/create/create-company.dto';
 import { AdminUser } from '../../../entities/admin-user.entity';
-import { BootstrapCompanyDto } from './dtos/bootstrap-company.dto';
+import { BootstrapCompanyDto } from './dtos/create/bootstrap-company.dto';
+import { UpdateCompanyDto } from './dtos/update/update-company.dto';
 
 @Injectable()
 export class CompanyService {
@@ -185,6 +186,118 @@ export class CompanyService {
         child_count: bootstrapCompanyDto.children.length,
         total_domains_created: totalDomains,
       };
+    });
+  }
+
+  async updateCompany(
+  companyId: number,
+  adminId: number,
+  updateCompanyDto: UpdateCompanyDto,
+  ) {
+    return this.dataSource.transaction(async (manager) => {
+      const companyRepository = manager.getRepository(Company);
+      const domainRepository = manager.getRepository(CompanyEmailDomain);
+
+      /* ---------------------------------------------------
+      * 1. Fetch company scoped to admin
+      * --------------------------------------------------- */
+      const company = await companyRepository.findOne({
+        where: {
+          id: companyId,
+          created_by: { id: adminId },
+        },
+        relations: ['email_domains'],
+      });
+
+      if (!company) {
+        throw new NotFoundException('Company not found');
+      }
+
+      /* ---------------------------------------------------
+      * 2. Update company fields (PATCH semantics)
+      * --------------------------------------------------- */
+      if (updateCompanyDto.name !== undefined) {
+        company.name = updateCompanyDto.name;
+      }
+
+      if (updateCompanyDto.code !== undefined) {
+        company.code = updateCompanyDto.code;
+      }
+
+      if (updateCompanyDto.is_active !== undefined) {
+        company.is_active = updateCompanyDto.is_active;
+      }
+
+      await companyRepository.save(company);
+
+      /* ---------------------------------------------------
+      * 3. Update existing domains
+      * --------------------------------------------------- */
+      if (updateCompanyDto.update_domains?.length) {
+        for (const updateDomain of updateCompanyDto.update_domains) {
+          const domain = company.email_domains.find(
+            (d) => d.id === updateDomain.id,
+          );
+
+          if (!domain) {
+            throw new BadRequestException(
+              `Domain with id ${updateDomain.id} does not belong to this company`,
+            );
+          }
+
+          if (updateDomain.domain !== undefined) {
+            domain.domain = updateDomain.domain;
+          }
+
+          if (updateDomain.is_active !== undefined) {
+            domain.is_active = updateDomain.is_active;
+          }
+
+          try {
+            await domainRepository.save(domain);
+          } catch (err) {
+            // Handles unique constraint on domain
+            throw new ConflictException('Domain already exists');
+          }
+        }
+      }
+
+      /* ---------------------------------------------------
+      * 4. Add new domains (create semantics)
+      * --------------------------------------------------- */
+      if (updateCompanyDto.new_domains?.length) {
+        const existingCount = company.email_domains.length;
+        const newCount = updateCompanyDto.new_domains.length;
+
+        if (existingCount + newCount > 10) {
+          throw new BadRequestException(
+            'A company can have a maximum of 10 email domains',
+          );
+        }
+
+        for (const newDomain of updateCompanyDto.new_domains) {
+          const domainEntity = domainRepository.create({
+            domain: newDomain.domain,
+            is_active: newDomain.is_active ?? true,
+            company,
+            created_by: { id: adminId } as AdminUser,
+          });
+
+          try {
+            await domainRepository.save(domainEntity);
+          } catch (err) {
+            throw new ConflictException('Domain already exists');
+          }
+        }
+      }
+
+      /* ---------------------------------------------------
+      * 5. Return updated company snapshot
+      * --------------------------------------------------- */
+      return companyRepository.findOne({
+        where: { id: company.id },
+        relations: ['email_domains', 'parent'],
+      });
     });
   }
 }

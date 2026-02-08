@@ -30,6 +30,6 @@ import { AdminRefreshToken } from '../../../entities/admin-refresh-token.entity'
   ],
   controllers: [AdminAuthController],
   providers: [AdminAuthService, AdminJwtStrategy],
-  exports: [JwtModule]
+  exports: [JwtModule, PassportModule]
 })
 export class AdminAuthModule {}

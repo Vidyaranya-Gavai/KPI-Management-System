@@ -1,4 +1,4 @@
-import { CompanyEmailDomainDto } from '../company-domain.dto';
+import { CompanyEmailDomainDto } from '../create/company-domain.dto';
 
 export interface IBootstrapCompany {
   name: string;
