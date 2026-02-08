@@ -7,6 +7,7 @@ import {
   IsString,
   IsInt,
   ValidateNested,
+  ArrayMinSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CompanyEmailDomainDto } from './company-domain.dto';
@@ -30,6 +31,7 @@ export class CreateCompanyDto {
 
   @IsArray()
   @ArrayMaxSize(5)
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => CompanyEmailDomainDto)
   email_domains: CompanyEmailDomainDto[];

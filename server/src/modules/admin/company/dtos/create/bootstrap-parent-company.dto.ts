@@ -1,5 +1,6 @@
 import {
   ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsNotEmpty,
@@ -24,6 +25,7 @@ export class BootstrapParentCompanyDto implements IBootstrapCompany {
 
   @IsArray()
   @ArrayMaxSize(5)
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => CompanyEmailDomainDto)
   email_domains: CompanyEmailDomainDto[];

@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { Company } from '../../../entities/company.entity';
 import { CompanyEmailDomain } from '../../../entities/company-email-domain.entity';
 import { CreateCompanyDto } from './dtos/create/create-company.dto';
@@ -190,9 +190,9 @@ export class CompanyService {
   }
 
   async updateCompany(
-  companyId: number,
-  adminId: number,
-  updateCompanyDto: UpdateCompanyDto,
+    companyId: number,
+    adminId: number,
+    updateCompanyDto: UpdateCompanyDto,
   ) {
     return this.dataSource.transaction(async (manager) => {
       const companyRepository = manager.getRepository(Company);
@@ -298,6 +298,146 @@ export class CompanyService {
         where: { id: company.id },
         relations: ['email_domains', 'parent'],
       });
+    });
+  }
+
+  async deleteCompany(
+    companyId: number,
+    adminId: number,
+  ) {
+    return this.dataSource.transaction(async (manager) => {
+      const companyRepository = manager.getRepository(Company);
+      const domainRepository = manager.getRepository(CompanyEmailDomain);
+
+      /* ---------------------------------------------------
+      * 1. Fetch company scoped to admin
+      * --------------------------------------------------- */
+      const company = await companyRepository.findOne({
+        where: {
+          id: companyId,
+          created_by: { id: adminId },
+        },
+        relations: ['email_domains'],
+      });
+
+      if (!company) {
+        throw new NotFoundException('Company not found');
+      }
+
+      const domainIds = company.email_domains.map(d => d.id);
+
+      /* ---------------------------------------------------
+      * 2. Detach child companies (set parent to null)
+      * --------------------------------------------------- */
+      await companyRepository.update(
+        { parent: { id: companyId } },
+        { parent: null },
+      );
+
+      /* ---------------------------------------------------
+      * 3. Delete company (DB cascade should handle domains)
+      * --------------------------------------------------- */
+      await companyRepository.remove(company);
+
+      /* ---------------------------------------------------
+      * 4. Defensive check – ensure no domains remain
+      * --------------------------------------------------- */
+      if (domainIds.length) {
+        const remainingDomains = await domainRepository.find({
+          where: {
+            id: In(domainIds),
+          },
+        });
+
+        if (remainingDomains.length) {
+          await domainRepository.remove(remainingDomains);
+        }
+      }
+
+      /* ---------------------------------------------------
+      * 5. Return response
+      * --------------------------------------------------- */
+      return {
+        message: 'Company deleted successfully',
+        company_id: companyId,
+      };
+    });
+  }
+
+  async deleteCompanyDomain(
+    companyId: number,
+    domainId: number,
+    adminId: number,
+  ) {
+    return this.dataSource.transaction(async (manager) => {
+      const companyRepository = manager.getRepository(Company);
+      const domainRepository = manager.getRepository(CompanyEmailDomain);
+
+      /* ---------------------------------------------------
+      * 1. Fetch company scoped to admin
+      * --------------------------------------------------- */
+      const company = await companyRepository.findOne({
+        where: {
+          id: companyId,
+          created_by: { id: adminId },
+        },
+        relations: ['email_domains'],
+      });
+
+      if (!company) {
+        throw new NotFoundException('Company not found');
+      }
+
+      /* ---------------------------------------------------
+      * 2. Validate domain belongs to company
+      * --------------------------------------------------- */
+      const domain = company.email_domains.find(
+        (d) => d.id === domainId,
+      );
+
+      if (!domain) {
+        throw new NotFoundException(
+          'Domain does not belong to this company',
+        );
+      }
+
+      /* ---------------------------------------------------
+      * 3. Ensure company has more than 1 domain
+      * --------------------------------------------------- */
+      if (company.email_domains.length <= 1) {
+        throw new BadRequestException(
+          'A company must have at least one email domain',
+        );
+      }
+
+      /* ---------------------------------------------------
+      * 4. Delete domain
+      * --------------------------------------------------- */
+      await domainRepository.remove(domain);
+
+      /* ---------------------------------------------------
+      * 5. Defensive verification
+      * --------------------------------------------------- */
+      const remainingDomainsCount = await domainRepository.count({
+        where: {
+          company: { id: companyId },
+        },
+      });
+
+      if (remainingDomainsCount === 0) {
+        throw new BadRequestException(
+          'Company cannot have zero email domains',
+        );
+      }
+
+      /* ---------------------------------------------------
+      * 6. Return response
+      * --------------------------------------------------- */
+      return {
+        message: 'Company email domain deleted successfully',
+        company_id: companyId,
+        domain_id: domainId,
+      };
     });
   }
 }
