@@ -20,6 +20,130 @@ export class CompanyService {
     private readonly domainRepo: Repository<CompanyEmailDomain>,
   ) {}
 
+  async getCompanyTree(adminId: number) {
+    /* ---------------------------------------------------
+    * 1. Fetch all companies for admin (flat list)
+    * --------------------------------------------------- */
+    const companies = await this.companyRepo.find({
+      where: {
+        created_by: { id: adminId },
+      },
+      relations: ['parent'],
+      order: {
+        created_at: 'ASC',
+      },
+    });
+
+    /* ---------------------------------------------------
+    * 2. Normalize into map
+    * --------------------------------------------------- */
+    const companyMap = new Map<number, any>();
+
+    companies.forEach((company) => {
+      companyMap.set(company.id, {
+        id: company.id,
+        name: company.name,
+        code: company.code,
+        is_active: company.is_active,
+        children: [],
+      });
+    });
+
+    /* ---------------------------------------------------
+    * 3. Build tree
+    * --------------------------------------------------- */
+    const roots: any[] = [];
+
+    companies.forEach((company) => {
+      const node = companyMap.get(company.id);
+
+      if (company.parent) {
+        const parentNode = companyMap.get(company.parent.id);
+        if (parentNode) {
+          parentNode.children.push(node);
+        } else {
+          // defensive fallback (should not happen)
+          roots.push(node);
+        }
+      } else {
+        roots.push(node);
+      }
+    });
+
+    /* ---------------------------------------------------
+    * 4. Return structured response
+    * --------------------------------------------------- */
+    return {
+      companies: roots,
+    };
+  }
+
+  async getCompanyDomains(companyId: number, adminId: number) {
+    /* ---------------------------------------------------
+    * 1. Verify company belongs to admin
+    * --------------------------------------------------- */
+    const company = await this.companyRepo.findOne({
+      where: {
+        id: companyId,
+        created_by: { id: adminId },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!company) {
+      throw new NotFoundException('Company not found');
+    }
+
+    /* ---------------------------------------------------
+    * 2. Fetch domains
+    * --------------------------------------------------- */
+    const domains = await this.domainRepo.find({
+      where: {
+        company: { id: companyId },
+      },
+      select: {
+        id: true,
+        domain: true,
+        is_active: true,
+        created_at: true,
+        updated_at: true,
+      },
+      order: {
+        created_at: 'ASC',
+      },
+    });
+
+    /* ---------------------------------------------------
+    * 3. Return response
+    * --------------------------------------------------- */
+    return {
+      company_id: companyId,
+      domains,
+    };
+  }
+
+  async getCompaniesFlat(adminId: number) {
+    const companies = await this.companyRepo.find({
+      where: {
+        created_by: { id: adminId },
+      },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+      },
+      order: {
+        name: 'ASC',
+      },
+    });
+
+    return {
+      companies,
+    };
+  }
+
   async createCompany(
     createCompanyDto: CreateCompanyDto,
     adminId?: number

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards, Req, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Req, Patch, Param, Delete, Get } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dtos/create/create-company.dto';
 import { BootstrapCompanyDto } from './dtos/create/bootstrap-company.dto';
@@ -9,6 +9,32 @@ import { UpdateCompanyDto } from './dtos/update/update-company.dto';
 @Controller('admin/company')
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
+
+  /* Get company hierarchy (tree) */
+  @UseGuards(AdminAuthGuard)
+  @Get()
+  async getCompanies(@Admin() admin: AdminContext) {
+    return this.companyService.getCompanyTree(admin.id);
+  }
+
+  /* Get domains for a company */
+  @UseGuards(AdminAuthGuard)
+  @Get(':companyId/domains')
+  async getCompanyDomains(
+    @Param('companyId') companyId: string,
+    @Admin() admin: AdminContext,
+  ) {
+    return this.companyService.getCompanyDomains(
+      Number(companyId),
+      admin.id,
+    );
+  }
+
+  @UseGuards(AdminAuthGuard)
+  @Get('flat')
+  async getCompaniesFlat(@Admin() admin: AdminContext) {
+    return this.companyService.getCompaniesFlat(admin.id);
+  }
 
   /* Create a single company at a time */
   @UseGuards(AdminAuthGuard)
