@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { CompanyEmailDomain } from './company-email-domain.entity';
 import { AdminUser } from './admin-user.entity';
+import { Dept } from './dept.entity';
 
 @Entity('company')
 export class Company {
@@ -45,6 +46,9 @@ export class Company {
   @ManyToOne(() => AdminUser, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by' })
   created_by: AdminUser | null;
+
+  @OneToMany(() => Dept, (dept) => dept.company)
+  depts: Dept[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;

@@ -10,6 +10,7 @@ import { IsEmail } from 'class-validator';
 import { AdminRefreshToken } from './admin-refresh-token.entity';
 import { Company } from './company.entity';
 import { CompanyEmailDomain } from './company-email-domain.entity';
+import { Dept } from './dept.entity';
 
 @Entity('admin_user')
 export class AdminUser {
@@ -34,6 +35,9 @@ export class AdminUser {
 
   @OneToMany(() => CompanyEmailDomain, (domain) => domain.created_by)
   companyEmailDomains: CompanyEmailDomain[];
+
+  @OneToMany(() => Dept, (dept) => dept.created_by)
+  depts: Dept[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;

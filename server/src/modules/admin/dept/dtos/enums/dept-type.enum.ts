@@ -1,0 +1,10 @@
+export enum DeptType {
+  ENGINEERING = 'ENGINEERING',
+  OPERATIONS = 'OPERATIONS',
+  SALES = 'SALES',
+  MARKETING = 'MARKETING',
+  HR = 'HR',
+  FINANCE = 'FINANCE',
+  IT = 'IT',
+  ADMIN = 'ADMIN',
+}

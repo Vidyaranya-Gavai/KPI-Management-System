@@ -4,10 +4,11 @@ import { AdminService } from './admin.service';
 
 import { AdminAuthModule } from './auth/admin-auth.module';
 import { CompanyModule } from './company/company.module';
+import { DeptModule } from './dept/dept.module';
 
 @Module({
-  imports: [AdminAuthModule, CompanyModule],
+  imports: [AdminAuthModule, CompanyModule, DeptModule],
   controllers: [AdminController],
-  providers: [AdminService]
+  providers: [AdminService],
 })
 export class AdminModule {}
