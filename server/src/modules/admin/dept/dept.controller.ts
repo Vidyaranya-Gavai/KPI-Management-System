@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  Delete,
+  Get,
   Param,
   Patch,
   Post,
@@ -15,6 +17,12 @@ import { UpdateDeptDto } from './dtos/update/update-dept.dto';
 @Controller('admin')
 export class DeptController {
   constructor(private readonly deptService: DeptService) {}
+
+  @UseGuards(AdminAuthGuard)
+  @Get('dept')
+  async getAllDepts(@Admin() admin: AdminContext) {
+    return this.deptService.getAllDepts(admin.id);
+  }
 
   @UseGuards(AdminAuthGuard)
   @Post('company/:companyId/dept')
@@ -34,5 +42,14 @@ export class DeptController {
     @Admin() admin: AdminContext,
   ) {
     return this.deptService.updateDept(deptId, updateDeptDto, admin.id);
+  }
+
+  @UseGuards(AdminAuthGuard)
+  @Delete('dept/:deptId')
+  async deleteDept(
+    @Param('deptId') deptId: number,
+    @Admin() admin: AdminContext,
+  ) {
+    return this.deptService.deleteDept(deptId, admin.id);
   }
 }
