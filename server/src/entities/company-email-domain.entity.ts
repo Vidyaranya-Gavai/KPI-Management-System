@@ -1,13 +1,23 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Company } from "./company.entity";
-import { AdminUser } from "./admin-user.entity";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Company } from './company.entity';
+import { AdminUser } from './admin-user.entity';
 
 @Entity('company_email_domain')
 export class CompanyEmailDomain {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Company, company => company.email_domains, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Company, (company) => company.email_domains, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'company_id' })
   company: Company;
 

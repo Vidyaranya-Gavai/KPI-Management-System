@@ -1,6 +1,15 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { CompanyEmailDomain } from "./company-email-domain.entity";
-import { AdminUser } from "./admin-user.entity";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { CompanyEmailDomain } from './company-email-domain.entity';
+import { AdminUser } from './admin-user.entity';
 
 @Entity('company')
 export class Company {
@@ -16,8 +25,8 @@ export class Company {
   @Column({ type: 'boolean', default: true })
   is_active: boolean;
 
-    // Parent company (self reference)
-  @ManyToOne(() => Company, company => company.children, {
+  // Parent company (self reference)
+  @ManyToOne(() => Company, (company) => company.children, {
     nullable: true,
     onDelete: 'SET NULL',
   })
@@ -25,11 +34,11 @@ export class Company {
   parent: Company | null;
 
   // Child companies
-  @OneToMany(() => Company, company => company.parent)
+  @OneToMany(() => Company, (company) => company.parent)
   children: Company[];
 
   // Email domains
-  @OneToMany(() => CompanyEmailDomain, d => d.company)
+  @OneToMany(() => CompanyEmailDomain, (d) => d.company)
   email_domains: CompanyEmailDomain[];
 
   // Admin who created the company

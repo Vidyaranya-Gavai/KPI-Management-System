@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
 import { Dept } from './dept.entity';
 import { KPI } from './kpi.entity';
 import { Employee } from './employee.entity';
@@ -14,14 +23,14 @@ export class Role {
   @Column({ type: 'text' })
   type: string;
 
-  @ManyToOne(() => Dept, dept => dept.roles)
+  @ManyToOne(() => Dept, (dept) => dept.roles)
   @JoinColumn({ name: 'dept_id' })
   dept: Dept;
 
-  @OneToMany(() => KPI, kpi => kpi.role)
+  @OneToMany(() => KPI, (kpi) => kpi.role)
   kpis: KPI[];
 
-  @OneToMany(() => Employee, emp => emp.role)
+  @OneToMany(() => Employee, (emp) => emp.role)
   employees: Employee[];
 
   @CreateDateColumn({ type: 'timestamptz' })

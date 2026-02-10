@@ -9,23 +9,20 @@ interface AdminJwtPayload {
 }
 
 @Injectable()
-export class AdminJwtStrategy extends PassportStrategy(
-  Strategy,
-  'admin-jwt'
-) {
+export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
   constructor(private readonly configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: configService.get<string>('ADMIN_JWT_SECRET'),
       issuer: 'pms-admin',
-      audience: 'pms-admin'
+      audience: 'pms-admin',
     });
   }
 
   async validate(payload: AdminJwtPayload) {
     return {
       id: payload.sub,
-      type: payload.type
+      type: payload.type,
     };
   }
 }

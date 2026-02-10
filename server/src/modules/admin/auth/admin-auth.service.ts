@@ -1,7 +1,7 @@
 import {
   ConflictException,
   Injectable,
-  UnauthorizedException
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -25,34 +25,31 @@ export class AdminAuthService {
     private readonly adminRepo: Repository<AdminUser>,
     @InjectRepository(AdminRefreshToken)
     private readonly adminRefreshTokenRepository: Repository<AdminRefreshToken>,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
   ) {}
 
   async register(dto: RegisterAdminDto) {
     const existing = await this.adminRepo.findOne({
-      where: { username: dto.username }
+      where: { username: dto.username },
     });
 
     if (existing) {
       throw new ConflictException('Admin already exists');
     }
 
-    const password_hash = await bcrypt.hash(
-      dto.password,
-      this.SALT_ROUNDS
-    );
+    const password_hash = await bcrypt.hash(dto.password, this.SALT_ROUNDS);
 
     const admin = this.adminRepo.create({
       username: dto.username,
       password_hash,
-      recovery_email: dto.recovery_email
+      recovery_email: dto.recovery_email,
     });
 
     await this.adminRepo.save(admin);
 
     return {
       id: admin.id,
-      username: admin.username
+      username: admin.username,
     };
   }
 
@@ -137,10 +134,7 @@ export class AdminAuthService {
       relations: ['admin'],
     });
 
-    const matchedToken = await this.findMatchingToken(
-      refreshToken,
-      tokens,
-    );
+    const matchedToken = await this.findMatchingToken(refreshToken, tokens);
 
     if (!matchedToken) {
       throw new UnauthorizedException('Invalid refresh token');
@@ -200,17 +194,14 @@ export class AdminAuthService {
     };
   }
 
-    /* ---------------- HELPER ---------------- */
+  /* ---------------- HELPER ---------------- */
 
   private async findMatchingToken(
     incomingToken: string,
     tokens: AdminRefreshToken[],
   ): Promise<AdminRefreshToken | null> {
     for (const token of tokens) {
-      const match = await bcrypt.compare(
-        incomingToken,
-        token.tokenHash,
-      );
+      const match = await bcrypt.compare(incomingToken, token.tokenHash);
       if (match) return token;
     }
     return null;

@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
 import { IsEmail } from 'class-validator';
 import { AdminRefreshToken } from './admin-refresh-token.entity';
 import { Company } from './company.entity';
@@ -19,16 +26,13 @@ export class AdminUser {
   @IsEmail()
   recovery_email: string;
 
-  @OneToMany(
-    () => AdminRefreshToken,
-    (token) => token.admin,
-  )
+  @OneToMany(() => AdminRefreshToken, (token) => token.admin)
   refreshTokens: AdminRefreshToken[];
 
-  @OneToMany(() => Company, company => company.created_by)
+  @OneToMany(() => Company, (company) => company.created_by)
   companies: Company[];
 
-  @OneToMany(() => CompanyEmailDomain, domain => domain.created_by)
+  @OneToMany(() => CompanyEmailDomain, (domain) => domain.created_by)
   companyEmailDomains: CompanyEmailDomain[];
 
   @CreateDateColumn({ type: 'timestamptz' })

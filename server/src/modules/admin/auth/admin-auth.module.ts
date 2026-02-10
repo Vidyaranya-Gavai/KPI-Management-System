@@ -21,15 +21,17 @@ import { AdminRefreshToken } from '../../../entities/admin-refresh-token.entity'
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('ADMIN_JWT_SECRET'),
         signOptions: {
-          expiresIn: config.get<string>('ADMIN_ACCESS_TOKEN_EXPIRY') as StringValue || '30m',
+          expiresIn:
+            (config.get<string>('ADMIN_ACCESS_TOKEN_EXPIRY') as StringValue) ||
+            '30m',
           issuer: 'pms-admin',
-          audience: 'pms-admin'
-        }
-      })
-    })
+          audience: 'pms-admin',
+        },
+      }),
+    }),
   ],
   controllers: [AdminAuthController],
   providers: [AdminAuthService, AdminJwtStrategy],
-  exports: [JwtModule, PassportModule]
+  exports: [JwtModule, PassportModule],
 })
 export class AdminAuthModule {}

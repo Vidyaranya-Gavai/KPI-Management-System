@@ -1,4 +1,9 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, Repository } from 'typeorm';
 import { Company } from '../../../entities/company.entity';
@@ -22,8 +27,8 @@ export class CompanyService {
 
   async getCompanyTree(adminId: number) {
     /* ---------------------------------------------------
-    * 1. Fetch all companies for admin (flat list)
-    * --------------------------------------------------- */
+     * 1. Fetch all companies for admin (flat list)
+     * --------------------------------------------------- */
     const companies = await this.companyRepo.find({
       where: {
         created_by: { id: adminId },
@@ -35,8 +40,8 @@ export class CompanyService {
     });
 
     /* ---------------------------------------------------
-    * 2. Normalize into map
-    * --------------------------------------------------- */
+     * 2. Normalize into map
+     * --------------------------------------------------- */
     const companyMap = new Map<number, any>();
 
     companies.forEach((company) => {
@@ -50,8 +55,8 @@ export class CompanyService {
     });
 
     /* ---------------------------------------------------
-    * 3. Build tree
-    * --------------------------------------------------- */
+     * 3. Build tree
+     * --------------------------------------------------- */
     const roots: any[] = [];
 
     companies.forEach((company) => {
@@ -71,8 +76,8 @@ export class CompanyService {
     });
 
     /* ---------------------------------------------------
-    * 4. Return structured response
-    * --------------------------------------------------- */
+     * 4. Return structured response
+     * --------------------------------------------------- */
     return {
       companies: roots,
     };
@@ -80,8 +85,8 @@ export class CompanyService {
 
   async getCompanyDomains(companyId: number, adminId: number) {
     /* ---------------------------------------------------
-    * 1. Verify company belongs to admin
-    * --------------------------------------------------- */
+     * 1. Verify company belongs to admin
+     * --------------------------------------------------- */
     const company = await this.companyRepo.findOne({
       where: {
         id: companyId,
@@ -97,8 +102,8 @@ export class CompanyService {
     }
 
     /* ---------------------------------------------------
-    * 2. Fetch domains
-    * --------------------------------------------------- */
+     * 2. Fetch domains
+     * --------------------------------------------------- */
     const domains = await this.domainRepo.find({
       where: {
         company: { id: companyId },
@@ -116,8 +121,8 @@ export class CompanyService {
     });
 
     /* ---------------------------------------------------
-    * 3. Return response
-    * --------------------------------------------------- */
+     * 3. Return response
+     * --------------------------------------------------- */
     return {
       company_id: companyId,
       domains,
@@ -144,26 +149,18 @@ export class CompanyService {
     };
   }
 
-  async createCompany(
-    createCompanyDto: CreateCompanyDto,
-    adminId?: number
-  ) {
-    const {
-      name,
-      code,
-      parent_company_id,
-      email_domains,
-      is_active,
-    } = createCompanyDto;
+  async createCompany(createCompanyDto: CreateCompanyDto, adminId?: number) {
+    const { name, code, parent_company_id, email_domains, is_active } =
+      createCompanyDto;
 
     // Normalize domains
-    const normalizedDomains = email_domains.map(d => ({
+    const normalizedDomains = email_domains.map((d) => ({
       domain: d.domain.trim().toLowerCase(),
       is_active: d.is_active ?? true,
     }));
 
     // Check duplicate domains in request itself
-    const uniqueDomains = new Set(normalizedDomains.map(d => d.domain));
+    const uniqueDomains = new Set(normalizedDomains.map((d) => d.domain));
     if (uniqueDomains.size !== normalizedDomains.length) {
       throw new BadRequestException('Duplicate email domains in request');
     }
@@ -182,19 +179,19 @@ export class CompanyService {
 
     // Check domain uniqueness in DB
     const existingDomains = await this.domainRepo.find({
-      where: normalizedDomains.map(d => ({ domain: d.domain })),
+      where: normalizedDomains.map((d) => ({ domain: d.domain })),
     });
 
     if (existingDomains.length > 0) {
       throw new ConflictException(
         `Domain already exists: ${existingDomains
-          .map(d => d.domain)
+          .map((d) => d.domain)
           .join(', ')}`,
       );
     }
 
     // Transaction starts
-    return await this.dataSource.transaction(async manager => {
+    return await this.dataSource.transaction(async (manager) => {
       // Admin reference (optional)
       let admin: AdminUser | null = null;
       if (adminId) {
@@ -215,7 +212,7 @@ export class CompanyService {
       const savedCompany = await manager.save(company);
 
       // Create email domains
-      const domainEntities = normalizedDomains.map(d =>
+      const domainEntities = normalizedDomains.map((d) =>
         manager.create(CompanyEmailDomain, {
           domain: d.domain,
           is_active: d.is_active,
@@ -231,7 +228,7 @@ export class CompanyService {
         id: savedCompany.id,
         name: savedCompany.name,
         code: savedCompany.code,
-        domains: domainEntities.map(d => d.domain),
+        domains: domainEntities.map((d) => d.domain),
       };
     });
   }
@@ -323,8 +320,8 @@ export class CompanyService {
       const domainRepository = manager.getRepository(CompanyEmailDomain);
 
       /* ---------------------------------------------------
-      * 1. Fetch company scoped to admin
-      * --------------------------------------------------- */
+       * 1. Fetch company scoped to admin
+       * --------------------------------------------------- */
       const company = await companyRepository.findOne({
         where: {
           id: companyId,
@@ -338,8 +335,8 @@ export class CompanyService {
       }
 
       /* ---------------------------------------------------
-      * 2. Update company fields (PATCH semantics)
-      * --------------------------------------------------- */
+       * 2. Update company fields (PATCH semantics)
+       * --------------------------------------------------- */
       if (updateCompanyDto.name !== undefined) {
         company.name = updateCompanyDto.name;
       }
@@ -355,8 +352,8 @@ export class CompanyService {
       await companyRepository.save(company);
 
       /* ---------------------------------------------------
-      * 3. Update existing domains
-      * --------------------------------------------------- */
+       * 3. Update existing domains
+       * --------------------------------------------------- */
       if (updateCompanyDto.update_domains?.length) {
         for (const updateDomain of updateCompanyDto.update_domains) {
           const domain = company.email_domains.find(
@@ -387,8 +384,8 @@ export class CompanyService {
       }
 
       /* ---------------------------------------------------
-      * 4. Add new domains (create semantics)
-      * --------------------------------------------------- */
+       * 4. Add new domains (create semantics)
+       * --------------------------------------------------- */
       if (updateCompanyDto.new_domains?.length) {
         const existingCount = company.email_domains.length;
         const newCount = updateCompanyDto.new_domains.length;
@@ -416,8 +413,8 @@ export class CompanyService {
       }
 
       /* ---------------------------------------------------
-      * 5. Return updated company snapshot
-      * --------------------------------------------------- */
+       * 5. Return updated company snapshot
+       * --------------------------------------------------- */
       return companyRepository.findOne({
         where: { id: company.id },
         relations: ['email_domains', 'parent'],
@@ -425,17 +422,14 @@ export class CompanyService {
     });
   }
 
-  async deleteCompany(
-    companyId: number,
-    adminId: number,
-  ) {
+  async deleteCompany(companyId: number, adminId: number) {
     return this.dataSource.transaction(async (manager) => {
       const companyRepository = manager.getRepository(Company);
       const domainRepository = manager.getRepository(CompanyEmailDomain);
 
       /* ---------------------------------------------------
-      * 1. Fetch company scoped to admin
-      * --------------------------------------------------- */
+       * 1. Fetch company scoped to admin
+       * --------------------------------------------------- */
       const company = await companyRepository.findOne({
         where: {
           id: companyId,
@@ -448,24 +442,24 @@ export class CompanyService {
         throw new NotFoundException('Company not found');
       }
 
-      const domainIds = company.email_domains.map(d => d.id);
+      const domainIds = company.email_domains.map((d) => d.id);
 
       /* ---------------------------------------------------
-      * 2. Detach child companies (set parent to null)
-      * --------------------------------------------------- */
+       * 2. Detach child companies (set parent to null)
+       * --------------------------------------------------- */
       await companyRepository.update(
         { parent: { id: companyId } },
         { parent: null },
       );
 
       /* ---------------------------------------------------
-      * 3. Delete company (DB cascade should handle domains)
-      * --------------------------------------------------- */
+       * 3. Delete company (DB cascade should handle domains)
+       * --------------------------------------------------- */
       await companyRepository.remove(company);
 
       /* ---------------------------------------------------
-      * 4. Defensive check – ensure no domains remain
-      * --------------------------------------------------- */
+       * 4. Defensive check – ensure no domains remain
+       * --------------------------------------------------- */
       if (domainIds.length) {
         const remainingDomains = await domainRepository.find({
           where: {
@@ -479,8 +473,8 @@ export class CompanyService {
       }
 
       /* ---------------------------------------------------
-      * 5. Return response
-      * --------------------------------------------------- */
+       * 5. Return response
+       * --------------------------------------------------- */
       return {
         message: 'Company deleted successfully',
         company_id: companyId,
@@ -498,8 +492,8 @@ export class CompanyService {
       const domainRepository = manager.getRepository(CompanyEmailDomain);
 
       /* ---------------------------------------------------
-      * 1. Fetch company scoped to admin
-      * --------------------------------------------------- */
+       * 1. Fetch company scoped to admin
+       * --------------------------------------------------- */
       const company = await companyRepository.findOne({
         where: {
           id: companyId,
@@ -513,21 +507,17 @@ export class CompanyService {
       }
 
       /* ---------------------------------------------------
-      * 2. Validate domain belongs to company
-      * --------------------------------------------------- */
-      const domain = company.email_domains.find(
-        (d) => d.id === domainId,
-      );
+       * 2. Validate domain belongs to company
+       * --------------------------------------------------- */
+      const domain = company.email_domains.find((d) => d.id === domainId);
 
       if (!domain) {
-        throw new NotFoundException(
-          'Domain does not belong to this company',
-        );
+        throw new NotFoundException('Domain does not belong to this company');
       }
 
       /* ---------------------------------------------------
-      * 3. Ensure company has more than 1 domain
-      * --------------------------------------------------- */
+       * 3. Ensure company has more than 1 domain
+       * --------------------------------------------------- */
       if (company.email_domains.length <= 1) {
         throw new BadRequestException(
           'A company must have at least one email domain',
@@ -535,13 +525,13 @@ export class CompanyService {
       }
 
       /* ---------------------------------------------------
-      * 4. Delete domain
-      * --------------------------------------------------- */
+       * 4. Delete domain
+       * --------------------------------------------------- */
       await domainRepository.remove(domain);
 
       /* ---------------------------------------------------
-      * 5. Defensive verification
-      * --------------------------------------------------- */
+       * 5. Defensive verification
+       * --------------------------------------------------- */
       const remainingDomainsCount = await domainRepository.count({
         where: {
           company: { id: companyId },
@@ -549,14 +539,12 @@ export class CompanyService {
       });
 
       if (remainingDomainsCount === 0) {
-        throw new BadRequestException(
-          'Company cannot have zero email domains',
-        );
+        throw new BadRequestException('Company cannot have zero email domains');
       }
 
       /* ---------------------------------------------------
-      * 6. Return response
-      * --------------------------------------------------- */
+       * 6. Return response
+       * --------------------------------------------------- */
       return {
         message: 'Company email domain deleted successfully',
         company_id: companyId,

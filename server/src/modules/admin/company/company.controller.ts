@@ -1,4 +1,13 @@
-import { Body, Controller, Post, UseGuards, Req, Patch, Param, Delete, Get } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  UseGuards,
+  Patch,
+  Param,
+  Delete,
+  Get,
+} from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dtos/create/create-company.dto';
 import { BootstrapCompanyDto } from './dtos/create/bootstrap-company.dto';
@@ -24,10 +33,7 @@ export class CompanyController {
     @Param('companyId') companyId: string,
     @Admin() admin: AdminContext,
   ) {
-    return this.companyService.getCompanyDomains(
-      Number(companyId),
-      admin.id,
-    );
+    return this.companyService.getCompanyDomains(Number(companyId), admin.id);
   }
 
   @UseGuards(AdminAuthGuard)
@@ -41,9 +47,9 @@ export class CompanyController {
   @Post()
   async createCompany(
     @Body() createCompanyDto: CreateCompanyDto,
-    @Admin() admin: AdminContext
+    @Admin() admin: AdminContext,
   ) {
-     return this.companyService.createCompany(createCompanyDto, admin.id);
+    return this.companyService.createCompany(createCompanyDto, admin.id);
   }
 
   /* Create bootstrap companies */
@@ -53,7 +59,10 @@ export class CompanyController {
     @Body() bootstrapCompanyDto: BootstrapCompanyDto,
     @Admin() admin: AdminContext,
   ) {
-    return this.companyService.createBootstrapCompanies(bootstrapCompanyDto, admin.id);
+    return this.companyService.createBootstrapCompanies(
+      bootstrapCompanyDto,
+      admin.id,
+    );
   }
 
   @UseGuards(AdminAuthGuard)
@@ -76,10 +85,7 @@ export class CompanyController {
     @Param('companyId') companyId: string,
     @Admin() admin: AdminContext,
   ) {
-    return this.companyService.deleteCompany(
-      Number(companyId),
-      admin.id,
-    );
+    return this.companyService.deleteCompany(Number(companyId), admin.id);
   }
 
   @UseGuards(AdminAuthGuard)

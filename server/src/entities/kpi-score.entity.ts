@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { KPI } from './kpi.entity';
 import { Employee } from './employee.entity';
 import { MonthEnum } from './month.enum';
@@ -12,7 +20,7 @@ export class KPIScore {
   @JoinColumn({ name: 'kpi_id' })
   kpi: KPI;
 
-  @ManyToOne(() => Employee, emp => emp.kpiScores)
+  @ManyToOne(() => Employee, (emp) => emp.kpiScores)
   @JoinColumn({ name: 'employee_id' })
   employee: Employee;
 

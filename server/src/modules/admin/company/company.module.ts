@@ -9,7 +9,7 @@ import { AdminAuthModule } from '../auth/admin-auth.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Company, CompanyEmailDomain]),
-    AdminAuthModule
+    AdminAuthModule,
   ],
   controllers: [CompanyController],
   providers: [CompanyService],

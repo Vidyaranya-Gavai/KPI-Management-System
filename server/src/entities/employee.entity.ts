@@ -1,7 +1,12 @@
 import {
-  Entity, PrimaryGeneratedColumn, Column,
-  ManyToOne, OneToMany,
-  CreateDateColumn, UpdateDateColumn, JoinColumn
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 import { Role } from './role.entity';
 import { Dept } from './dept.entity';
@@ -31,7 +36,7 @@ export class Employee {
   @Column({ type: 'text' })
   type: string;
 
-  @ManyToOne(() => Role, role => role.employees)
+  @ManyToOne(() => Role, (role) => role.employees)
   @JoinColumn({ name: 'role_id' })
   role: Role;
 
@@ -39,17 +44,17 @@ export class Employee {
   @JoinColumn({ name: 'dept_id' })
   dept: Dept;
 
-  @ManyToOne(() => Employee, emp => emp.approvees, { nullable: true })
+  @ManyToOne(() => Employee, (emp) => emp.approvees, { nullable: true })
   @JoinColumn({ name: 'kpi_approver_id' })
   kpiApprover: Employee;
 
-  @OneToMany(() => Employee, emp => emp.kpiApprover)
+  @OneToMany(() => Employee, (emp) => emp.kpiApprover)
   approvees: Employee[];
 
-  @OneToMany(() => KPIScore, score => score.employee)
+  @OneToMany(() => KPIScore, (score) => score.employee)
   kpiScores: KPIScore[];
 
-  @OneToMany(() => CalculatedScore, score => score.employee)
+  @OneToMany(() => CalculatedScore, (score) => score.employee)
   calculatedScores: CalculatedScore[];
 
   @CreateDateColumn({ type: 'timestamptz' })

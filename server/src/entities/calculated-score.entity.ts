@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Employee } from './employee.entity';
 import { MonthEnum } from './month.enum';
 
@@ -7,7 +15,7 @@ export class CalculatedScore {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Employee, emp => emp.calculatedScores)
+  @ManyToOne(() => Employee, (emp) => emp.calculatedScores)
   @JoinColumn({ name: 'employee_id' })
   employee: Employee;
 
