@@ -11,6 +11,7 @@ import { AdminRefreshToken } from './admin-refresh-token.entity';
 import { Company } from './company.entity';
 import { CompanyEmailDomain } from './company-email-domain.entity';
 import { Dept } from './dept.entity';
+import { Role } from './role.entity';
 
 @Entity('admin_user')
 export class AdminUser {
@@ -38,6 +39,9 @@ export class AdminUser {
 
   @OneToMany(() => Dept, (dept) => dept.created_by)
   depts: Dept[];
+
+  @OneToMany(() => Role, (role) => role.created_by)
+  roles: Role[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;

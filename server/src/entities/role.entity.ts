@@ -11,6 +11,8 @@ import {
 import { Dept } from './dept.entity';
 import { KPI } from './kpi.entity';
 import { Employee } from './employee.entity';
+import { AdminUser } from './admin-user.entity';
+import { Company } from './company.entity';
 
 @Entity('role')
 export class Role {
@@ -32,6 +34,21 @@ export class Role {
 
   @OneToMany(() => Employee, (emp) => emp.role)
   employees: Employee[];
+
+  // Role → Admin (created by)
+  @ManyToOne(() => AdminUser, (admin) => admin.roles, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'created_by' })
+  created_by: AdminUser | null;
+
+  // Role → Company
+  @ManyToOne(() => Company, (company) => company.roles, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'company_id' })
+  company: Company;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;

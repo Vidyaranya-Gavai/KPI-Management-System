@@ -11,6 +11,7 @@ import {
 import { CompanyEmailDomain } from './company-email-domain.entity';
 import { AdminUser } from './admin-user.entity';
 import { Dept } from './dept.entity';
+import { Role } from './role.entity';
 
 @Entity('company')
 export class Company {
@@ -49,6 +50,9 @@ export class Company {
 
   @OneToMany(() => Dept, (dept) => dept.company)
   depts: Dept[];
+
+  @OneToMany(() => Role, (role) => role.company)
+  roles: Role[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
